@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const https = require('https');
 const cloudinary = require('../config/cloudinary');
 const Note = require('../models/Note');
 const { auth, adminAuth } = require('../middleware/auth');
@@ -103,18 +104,22 @@ router.get('/:id/download', async (req, res) => {
     note.downloads += 1;
     await note.save();
 
-    // Stream file from Cloudinary
-    const response = await fetch(note.fileUrl);
-    if (!response.ok) {
-      return res.status(500).json({ message: 'Failed to fetch file from Cloudinary' });
-    }
+    // Stream file from Cloudinary using https
+    const url = new URL(note.fileUrl);
+    https.get(url, (response) => {
+      if (response.statusCode !== 200) {
+        return res.status(500).json({ message: 'Failed to fetch file from Cloudinary' });
+      }
 
-    // Set headers for download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${note.fileName}"`);
-    
-    // Pipe the file stream
-    response.body.pipe(res);
+      // Set headers for download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${note.fileName}"`);
+      
+      // Pipe the file stream
+      response.pipe(res);
+    }).on('error', (error) => {
+      res.status(500).json({ message: error.message });
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
