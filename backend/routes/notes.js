@@ -95,19 +95,30 @@ router.get('/:id', async (req, res) => {
 // Download note (increment download count)
 router.get('/:id/download', async (req, res) => {
   try {
+    console.log('Download request for note ID:', req.params.id);
     const note = await Note.findById(req.params.id);
     
     if (!note) {
+      console.log('Note not found');
       return res.status(404).json({ message: 'Note not found' });
     }
+
+    console.log('Note found:', note.title);
+    console.log('File URL:', note.fileUrl);
 
     note.downloads += 1;
     await note.save();
 
     // Stream file from Cloudinary using https
     const url = new URL(note.fileUrl);
+    console.log('Fetching file from:', url.href);
+    
     https.get(url, (response) => {
+      console.log('Cloudinary response status:', response.statusCode);
+      console.log('Cloudinary response headers:', response.headers);
+      
       if (response.statusCode !== 200) {
+        console.log('Cloudinary returned non-200 status');
         return res.status(500).json({ message: 'Failed to fetch file from Cloudinary' });
       }
 
@@ -115,12 +126,15 @@ router.get('/:id/download', async (req, res) => {
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${note.fileName}"`);
       
+      console.log('Starting file stream...');
       // Pipe the file stream
       response.pipe(res);
     }).on('error', (error) => {
+      console.log('Error fetching file:', error.message);
       res.status(500).json({ message: error.message });
     });
   } catch (error) {
+    console.log('Download error:', error.message);
     res.status(500).json({ message: error.message });
   }
 });
