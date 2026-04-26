@@ -60,16 +60,8 @@ export default function NoteDetail() {
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notes/${params.id}/download`)
-      const data = await response.json()
-      if (data.fileUrl) {
-        // Add fl_attachment parameter to force download
-        const downloadUrl = data.fileUrl.includes('?') 
-          ? `${data.fileUrl}&fl_attachment=true` 
-          : `${data.fileUrl}?fl_attachment=true`
-        window.open(downloadUrl, '_blank')
-        setNote({ ...note, downloads: note.downloads + 1 })
-      }
+      window.open(`${process.env.NEXT_PUBLIC_API_URL}/notes/${params.id}/download`, '_blank')
+      setNote({ ...note, downloads: note.downloads + 1 })
     } catch (error) {
       console.error('Error downloading note:', error)
     }

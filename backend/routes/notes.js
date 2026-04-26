@@ -103,7 +103,18 @@ router.get('/:id/download', async (req, res) => {
     note.downloads += 1;
     await note.save();
 
-    res.json({ fileUrl: note.fileUrl, fileName: note.fileName });
+    // Stream file from Cloudinary
+    const response = await fetch(note.fileUrl);
+    if (!response.ok) {
+      return res.status(500).json({ message: 'Failed to fetch file from Cloudinary' });
+    }
+
+    // Set headers for download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${note.fileName}"`);
+    
+    // Pipe the file stream
+    response.body.pipe(res);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
