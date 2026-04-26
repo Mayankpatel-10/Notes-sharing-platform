@@ -13,7 +13,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: ['https://notes-sharing-platform.vercel.app', 'http://localhost:3000'],
+  origin: '*',
   credentials: true
 }));
 app.use(express.json());
