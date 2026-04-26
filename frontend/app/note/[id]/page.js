@@ -60,9 +60,12 @@ export default function NoteDetail() {
 
   const handleDownload = async () => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notes/${params.id}/download`)
-      window.open(note.fileUrl, '_blank')
-      setNote({ ...note, downloads: note.downloads + 1 })
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notes/${params.id}/download`)
+      const data = await response.json()
+      if (data.fileUrl) {
+        window.open(data.fileUrl, '_blank')
+        setNote({ ...note, downloads: note.downloads + 1 })
+      }
     } catch (error) {
       console.error('Error downloading note:', error)
     }
