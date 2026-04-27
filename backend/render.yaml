@@ -4,6 +4,7 @@ services:
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: python app.py
+    plan: free
     envVars:
       - key: MONGODB_URI
         sync: false
